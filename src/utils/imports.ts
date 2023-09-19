@@ -1,27 +1,33 @@
-import type { ComponentConfig } from "../config";
+import type { ComponentConfig } from "@astrojs/markdoc/config";
+import { renderComponent, type AstroComponentFactory } from "astro/runtime/server/index.js";
+import type { AstroFactoryReturnValue } from "astro/runtime/server/render/astro/factory.js";
 
-/**
- * Get stringified import statements for configured tags or nodes.
- * `componentNamePrefix` is appended to the import name for namespacing.
- *
- * Example output: `import Tagaside from '/Users/.../src/components/Aside.astro';`
- */
-export function getStringifiedImports(
-	componentConfigMap: Record<string, ComponentConfig>,
+export const getStringifiedImports = (
+    componentConfigMap: Record<string, ComponentConfig>,
 	componentNamePrefix: string,
 	root: URL
-) {
-	let stringifiedComponentImports = '';
-	for (const [key, config] of Object.entries(componentConfigMap)) {
-		const importName = config.namedExport
-			? `{ ${config.namedExport} as ${componentNamePrefix + toImportName(key)} }`
-			: componentNamePrefix + toImportName(key);
-		const resolvedPath =
-			config.type === 'local' ? new URL(config.path, root).pathname : config.path;
-
-		stringifiedComponentImports += `import ${importName} from ${JSON.stringify(resolvedPath)};\n`;
+) => {
+	let imports: Array<{ name: string, path: string }> = [];
+	for(const [key, config] of Object.entries(componentConfigMap)) {
+		imports.push({ 
+			name: componentNamePrefix + toImportName(key), 
+			path:  config.type === 'local' ? new URL(config.path, root).pathname : config.path
+		});
 	}
-	return stringifiedComponentImports;
+
+	return imports;
+    // let stringifiedComponentImports = '';
+	// for (const [key, config] of Object.entries(componentConfigMap)) {
+	// 	const importName = config.namedExport
+	// 		? `{ ${config.namedExport} as ${componentNamePrefix + toImportName(key)} }`
+	// 		: componentNamePrefix + toImportName(key);
+	// 	const resolvedPath =
+	// 		config.type === 'local' ? new URL(config.path, root).pathname : config.path;
+
+	// 	stringifiedComponentImports += `import ${importName} from ${JSON.stringify(resolvedPath)};\n`;
+	// }
+	// return stringifiedComponentImports;
+
 }
 
 function toImportName(unsafeName: string) {
@@ -29,22 +35,23 @@ function toImportName(unsafeName: string) {
 	return unsafeName.replace('-', '_');
 }
 
-/**
- * Get a stringified map from tag / node name to component import name.
- * This uses the same `componentNamePrefix` used by `getStringifiedImports()`.
- *
- * Example output: `{ aside: Tagaside, heading: Tagheading }`
- */
-export function getStringifiedMap(
-	componentConfigMap: Record<string, ComponentConfig>,
+export const getStringifiedMap = (
+    componentConfigMap: Record<string, ComponentConfig>,
 	componentNamePrefix: string
-) {
-	let stringifiedComponentMap = '{';
-	for (const key in componentConfigMap) {
-		stringifiedComponentMap += `${JSON.stringify(key)}: ${
-			componentNamePrefix + toImportName(key)
-		},\n`;
+): Record<string, AstroComponentFactory> => {
+	let map: Record<string, AstroComponentFactory> = {};
+	for(const key in componentConfigMap) {
+		map[key] = (componentNamePrefix + toImportName(key)) as unknown as AstroComponentFactory
 	}
-	stringifiedComponentMap += '}';
-	return stringifiedComponentMap;
+
+	return map;
+
+    // let stringifiedComponentMap = '{';
+	// for (const key in componentConfigMap) {
+	// 	stringifiedComponentMap += `${JSON.stringify(key)}: ${
+	// 		componentNamePrefix + toImportName(key)
+	// 	},\n`;
+	// }
+	// stringifiedComponentMap += '}';
+	// return stringifiedComponentMap;
 }

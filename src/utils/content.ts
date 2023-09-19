@@ -1,12 +1,22 @@
+import { fileURLToPath } from "node:url";
 import matter from 'gray-matter';
 import type { ErrorPayload as ViteErrorPayload } from 'vite';
-import { fileURLToPath } from 'node:url';
+
+export function getEntryInfo({ fileUrl, contents }: { fileUrl: URL; contents: string }) {
+	const parsed = parseFrontmatter(contents, fileURLToPath(fileUrl));
+	return {
+		data: parsed.data,
+		body: parsed.content,
+		slug: parsed.data.slug,
+		rawData: parsed.matter,
+	};
+}
 
 /**
  * Match YAML exception handling from Astro core errors
  * @see 'astro/src/core/errors.ts'
  */
-export function parseFrontmatter(fileContents: string, filePath: string) {
+function parseFrontmatter(fileContents: string, filePath: string) {
 	try {
 		// `matter` is empty string on cache results
 		// clear cache to prevent this
@@ -23,14 +33,4 @@ export function parseFrontmatter(fileContents: string, filePath: string) {
 			throw e;
 		}
 	}
-}
-
-export function getEntryInfo({ fileUrl, contents }: { fileUrl: URL; contents: string }) {
-	const parsed = parseFrontmatter(contents, fileURLToPath(fileUrl));
-	return {
-		data: parsed.data,
-		body: parsed.content,
-		slug: parsed.data.slug,
-		rawData: parsed.matter,
-	};
 }

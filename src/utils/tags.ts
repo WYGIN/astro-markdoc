@@ -1,7 +1,6 @@
-import Markdoc from "@markdoc/markdoc";
-import type { Config as MarkdocConfig, Node } from '@markdoc/markdoc';
+import Markdoc, { type Node } from "@markdoc/markdoc";
 
-export function getUsedTags(markdocAst: Node) {
+export const getUsedTags = (markdocAst: Node) => {
 	const tags = new Set<string>();
 	const validationErrors = Markdoc.validate(markdocAst);
 	// Hack: run the validator with an empty config and look for 'tag-undefined'.
