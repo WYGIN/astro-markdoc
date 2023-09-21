@@ -1,5 +1,5 @@
 import type { AstroConfig, ViteUserConfig } from 'astro';
-import type { AstroMarkdocConfig } from '../utils/user-config';
+import type { MarkdocUserConfig } from '../utils/user-config';
 
 function resolveVirtualModuleId<T extends string>(id: T): `\0${T}` {
 	return `\0${id}`;
@@ -7,7 +7,7 @@ function resolveVirtualModuleId<T extends string>(id: T): `\0${T}` {
 
 /** Vite plugin that exposes Markdoc config and project context via virtual modules. */
 export function vitePluginStarlightUserConfig(
-	opts: AstroMarkdocConfig,
+	opts: MarkdocUserConfig,
 	{ root }: Pick<AstroConfig, 'root'>
 ): NonNullable<ViteUserConfig['plugins']>[number] {
 
@@ -15,6 +15,8 @@ export function vitePluginStarlightUserConfig(
 	const modules = {
 		'virtual:wygin/markdoc-config': `export default ${JSON.stringify(opts)}`,
 		'virtual:wygin/project-context': `export default ${JSON.stringify({ root })}`,
+        'virtual:wygin/markdoc-unique-imports': ``,
+        'virtual:wygin/user-config': ``,
 	} satisfies Record<string, string>;
 
 	/** Mapping names prefixed with `\0` to their original form. */
