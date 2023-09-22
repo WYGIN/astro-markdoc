@@ -4,19 +4,45 @@ import { fileURLToPath } from "node:url";
 import type { AstroConfig } from "astro";
 import type { MarkdocUserConfig } from '../utils/user-config';
 import type { AstroMarkdocConfig } from "../config";
+import { ACFMap } from "../factory/acf-map";
+import type { Config } from "@markdoc/markdoc";
 
 function resolveVirtualModuleId<T extends string>(id: T): `\0${T}` {
 	return `\0${id}`;
 }
 
-export function vitePluginAstroMarkdocSSr(options: MarkdocUserConfig, { root }: Pick<AstroConfig, 'root'>, markdocConfig: AstroMarkdocConfig): NonNullable<ViteUserConfig['plugins']>[number] {
+export function vitePluginAstroMarkdocSSr(options: MarkdocUserConfig, { root }: Pick<AstroConfig, 'root'>, markdocConfig: Config): NonNullable<ViteUserConfig['plugins']>[number] {
     const resolveId = (id: string) =>
 		JSON.stringify(id.startsWith('.') ? resolve(fileURLToPath(root), id) : id);
     const modules = {
-        'virtual:wygin/user-config': ``,
-        'virtual:wygin/markdoc-unique-imports': ``,
-        'virtual:wygin/markdoc-config': ``,
-        'virtual:wygin/project-context': ``,
+        'virtual:wygin/user-config': `export default ${JSON.stringify(options)}`,
+        'virtual:wygin/markdoc-unique-imports': `export default ${JSON.stringify(ACFMap.get())}`,
+        'virtual:wygin/markdoc-config': `export default ${JSON.stringify(markdocConfig)}`,
+        'virtual:wygin/project-context': `export default ${JSON.stringify(root)}`,
+		'virtual:wygin/astro-markdoc-ssr-renderer': `
+			---
+			${ACFMap.get().forEach(item => {
+				return `const ${item.name} = ${item}`
+			})}
+			import type { Config } from '@markdoc/markdoc';
+			import Markdoc from '@markdoc/markdoc';
+			import { ComponentNode, createTreeNode } from '@wygininc/astro-markdoc-ssr/components/TreeNode.js';
+			import config from 'virtual:wygin/markdoc-config';
+			interface Props = {
+				source: string;
+			}
+			const { source } = Astro.props as Props;
+			const ast = Markdoc.parse(source);
+			const content = Markdoc.transform(ast, config);
+			---
+			{
+				Array.isArray(content) ? (
+					content.map(async (c) => <ComponentNode treeNode={await createTreeNode(c)} />)
+				) : (
+					<ComponentNode treeNode={await createTreeNode(content)} />
+				)
+			}
+		`,
     } satisfies Record<string, string>;
 
     	/** Mapping names prefixed with `\0` to their original form. */

@@ -2,11 +2,12 @@ import type { AstroConfig, AstroIntegration } from "astro";
 import type { MarkdocUserConfig } from "./utils/user-config";
 import type { AstroUserConfig } from "astro/config";
 import { vitePluginAstroMarkdocSSr } from "./vite/astro-markdoc-ssr";
-import type { AstroMarkdocConfig, Render } from "./config";
 import * as fs from 'node:fs';
-import path from "node:path";
 import { getMarkdocPath, type MarkdocPath } from "./utils/user-config";
-import type { Config, NodeType, Schema } from "@markdoc/markdoc";
+import type { Config } from "@markdoc/markdoc";
+import { getNamedImport } from "./utils/named-imports";
+import { fileURLToPath } from "node:url";
+import { ACFMap } from "./factory/acf-map";
 
 export default function AstroMarkdocSSR(options: MarkdocUserConfig): AstroIntegration {
     return AstroMarkdocSSRConfig(options)
@@ -28,17 +29,33 @@ const AstroMarkdocSSRConfig = (options: MarkdocUserConfig): AstroIntegration => 
     }
 }
 
-const markdocUserConfig = ({ root }: AstroConfig, path?: MarkdocPath): AstroMarkdocConfig => {
-    const { nodes, tags, partials, variables, functions } = getMDocFiles(root, path);
-    const getNodes = (): Partial<Record<NodeType, Schema<Config, Render>>> => {
-        return {
-            
+const getNodes = async (nodes : URL[], isNode: boolean) => {
+    let nodeArray = nodes.map(async file => {
+        const obj = await import(fileURLToPath(file));
+        const namedImport = getNamedImport(obj);
+        if(isNode) {
+            const component = ACFMap.add(obj[namedImport]);
+            return { [namedImport] : obj[namedImport] & { render: component.name } as any };
         }
-    }
-    return {
-        nodes: {
+        return { [namedImport]: obj[namedImport] as any };
+    });
 
-        }
+    return await Promise.all(nodeArray);
+}
+
+export const markdocUserConfig = ({ root }: AstroConfig, path?: MarkdocPath): Config => {
+    const { nodes, tags, partials, variables, functions } = getMDocFiles(root, path);
+    const n = (async () => await getNodes(nodes, true))
+    const t = (async () => await getNodes(tags, true))
+    const p = (async () => await getNodes(partials, false))
+    const v = (async () => await getNodes(variables, false))
+    const f = (async () => await getNodes(functions, false))
+    return {
+        nodes: { ...n },
+        tags: { ...t },
+        partials: { ...p },
+        variables: { ...v },
+        functions: { ...f },
     }
 }
 

@@ -1,6 +1,3 @@
-import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
-import { acfMap } from './factory/acf-map';
-
 /**
  * 
  * this file contains the definations of the virtual modules used in this project
@@ -8,8 +5,8 @@ import { acfMap } from './factory/acf-map';
  */
 
 declare module 'virtual:wygin/user-config' {
-    const Config: import('./utils/user-config').AstroMarkdocConfig;
-    return Config;
+    const Config: import('./utils/user-config').MarkdocUserConfig;
+    export default Config;
 }
 
 // declare module 'virtual:wygin/astro-markdoc-config' {
@@ -18,14 +15,21 @@ declare module 'virtual:wygin/user-config' {
 // }
 
 declare module 'virtual:wygin/markdoc-unique-imports' {
-    return typeof acfMap;
+    const Config: import('./factory/acf-map').acfMap;
+    export default Config;
 }
 
 declare module 'virtual:wygin/markdoc-config' {
     const Config: import('@markdoc/markdoc').Config;
-    return Config;
+    export default Config;
 }
 
 declare module 'virtual:wygin/project-context' {
-    export default { root: string };
+    const Config: { root: string };
+    export default Config;
+}
+
+declare module 'virtual:wygin/astro-markdoc-ssr-renderer' {
+    const Config: import('astro/runtime/server/index.js').AstroComponentFactory;
+    export default Config;
 }

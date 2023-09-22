@@ -1,5 +1,5 @@
 {
-  "name": "astro-markdoc",
+  "name": "@wygininc/astro-markdoc-ssr",
   "type": "module",
   "version": "0.0.1",
   "types": "./dist/index.d.ts",
