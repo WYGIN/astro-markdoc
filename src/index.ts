@@ -15,7 +15,7 @@ export default function AstroMarkdocSSR(options: MarkdocUserConfig): AstroIntegr
 
 const AstroMarkdocSSRConfig = (options: MarkdocUserConfig): AstroIntegration => {
     return {
-        'name': '@wygininc/astro-markdoc-ssr-config',
+        'name': 'astro-markdoc-ssr',
         hooks: {
             'astro:config:setup': ({ config, updateConfig }) => {
                 const userConfig: AstroUserConfig = {

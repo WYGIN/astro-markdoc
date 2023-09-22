@@ -26,7 +26,7 @@ export function vitePluginAstroMarkdocSSr(options: MarkdocUserConfig, { root }: 
 			})}
 			import type { Config } from '@markdoc/markdoc';
 			import Markdoc from '@markdoc/markdoc';
-			import { ComponentNode, createTreeNode } from '@wygininc/astro-markdoc-ssr/components/TreeNode.js';
+			import { ComponentNode, createTreeNode } from 'astro-markdoc-ssr/components/TreeNode.js';
 			import config from 'virtual:wygin/markdoc-config';
 			interface Props = {
 				source: string;
