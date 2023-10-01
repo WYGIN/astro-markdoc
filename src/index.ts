@@ -10,17 +10,20 @@ import { fileURLToPath } from "node:url";
 import { ACFMap } from "./factory/acf-map";
 
 export default function AstroMarkdocSSR(options: MarkdocUserConfig): AstroIntegration {
-    return AstroMarkdocSSRConfig(options)
+    return AstroMarkdocSSRConfig({ options })
 }
 
-const AstroMarkdocSSRConfig = (options: MarkdocUserConfig): AstroIntegration => {
+const AstroMarkdocSSRConfig = ({ options= {
+    allowHTML: false,
+    markdocPath: '/src/markdoc'
+} }: { options: MarkdocUserConfig}): AstroIntegration => {
     return {
         'name': 'astro-markdoc-ssr',
         hooks: {
             'astro:config:setup': ({ config, updateConfig }) => {
                 const userConfig: AstroUserConfig = {
                     vite: {
-                        plugins: [vitePluginAstroMarkdocSSr(options, config, markdocUserConfig(config, options.markdocPath))]
+                        plugins: [vitePluginAstroMarkdocSSr(options, config, markdocUserConfig(config, options?.markdocPath))]
                     }
                 };
                 updateConfig(userConfig);
@@ -74,14 +77,16 @@ const markdocFiles: Array<URL> = [];
 const markdocFileRegex = /\.(md|mdoc)$/;
 
 const getFilesWithExtentions = (dir: string | URL, extentions: RegExp) => {
-    const files = fs.readdirSync(dir);
-    for(const file of files) {
-        const filepath = new URL(file, dir);
-        if(fs.statSync(filepath).isDirectory()) {
-            getFilesWithExtentions(filepath, extentions);
-        } else {
-            if(extentions.test(filepath.href)) {
-                markdocFiles.push(filepath);
+    if(fs.existsSync(dir)) {
+        const files = fs.readdirSync(dir);
+        for(const file of files) {
+            const filepath = new URL(file, dir);
+            if(fs.statSync(filepath).isDirectory()) {
+                getFilesWithExtentions(filepath, extentions);
+            } else {
+                if(extentions.test(filepath.href)) {
+                    markdocFiles.push(filepath);
+                }
             }
         }
     }

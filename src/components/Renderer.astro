@@ -1,4 +1,4 @@
----
+<!-- ---
 //! astro-head-inject
 import type { Config } from '@markdoc/markdoc';
 import Markdoc from '@markdoc/markdoc';
@@ -21,4 +21,12 @@ const content = Markdoc.transform(ast as any, config);
 	) : (
 		<ComponentNode treeNode={await createTreeNode(content)} />
 	)
+} -->
+---
+import MarkdocRenderer from 'virtual:wygin/astro-markdoc-ssr-renderer';
+interface Props {
+	source: string;
 }
+const { source } = Astro.props as Props;
+---
+<MarkdocRenderer source={source} />

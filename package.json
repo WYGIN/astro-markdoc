@@ -1,7 +1,7 @@
 {
   "name": "astro-markdoc-ssr",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "types": "./dist/index.d.ts",
   "keywords": [
     "astro-integration",

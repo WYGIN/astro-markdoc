@@ -3,7 +3,6 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { AstroConfig } from "astro";
 import type { MarkdocUserConfig } from '../utils/user-config';
-import type { AstroMarkdocConfig } from "../config";
 import { ACFMap } from "../factory/acf-map";
 import type { Config } from "@markdoc/markdoc";
 
